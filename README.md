@@ -1,2 +1,3 @@
 # magnum
-a library to manage very precise values in c
+A library to manage very precise values in c
+Uses an array for storing precision, power and fraction
