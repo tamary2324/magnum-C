@@ -3,97 +3,85 @@
 #include <stdio.h>
 #include "display.h" //gcc magnum.c display.c
 
-
-int get_precision(uint8_t * at){    
-    //get the magnum adress and return its precision value
-
-    return (((at[0])&(~(1<<7))<<8)+at[1]);
-}
-
-
-
-int get_power(uint8_t * at){        
-    //get the magnum adress and return its signed power value
-
-    return (((at[2])&(~(1<<7))<<8)+at[3])^(((at[2])&(1<<7))<<24);
-}
+struct magnum{
+    int16_t sign_n_prec;//signed int 16 
+    //abs(sign_n_prec) giving the precision 
+    //(sign_n_prec<0) giving the sign of the magnum 
+    int16_t power;//signed power value
+    int8_t * value;//adress of the magnum array on the stack
+};
 
 
 
-int get_sign(uint8_t * at){         
-    //get the magnum adress and return its sign
-
-    return ((at[0])&(1<<7))>>7;
-}
-
-
-
-uint8_t * to_magnum_from_int(int a){
-    //get an int and return the adress of the corresponding magnum
-
+struct magnum * to_magnum_from_int(int a){
+    //get an int and return the adress of the corresponding magnum structure allocated on the stack
+    struct magnum * mag1 = (struct magnum*) malloc(sizeof(struct magnum));
     int precision=0;
-    int valeur_absolue =a;
-    if (a<0)
-        valeur_absolue=~a+1;
-
-    while (((valeur_absolue>>(precision*8))>0)&&(precision<4)){ //get needed precision
+    while (((abs(a)>>(precision*8))>0)&&(precision<4)){ //get needed precision
         precision++;
     }
 
-    uint8_t *at = (uint8_t*) malloc((precision+4)*sizeof(uint8_t));
-
-    at[0]=((a<0)<<7)+(precision/256);   //sign of the number and strong bits for precision
-    at[1]=precision%256;                //weak bits for precision
-    at[2]=0;                            //sign and strong bits for power
-    at[3]=0;                            //weak bits for power
+    if (a<0)
+        mag1->sign_n_prec = ~precision+1;
+    else
+        mag1->sign_n_prec = precision;
+    
+    mag1->power = 0;
+    mag1->value = (uint8_t *) malloc(abs(mag1->sign_n_prec)*sizeof(uint8_t));
 
     for (int i = 0; i < precision; i++){
-        at[i+4]=(valeur_absolue>>((precision-i-1)*8))%256;  //copy the int value into a magnum
+        mag1->value[i]=(abs(a)>>((precision-i-1)*8))%256;  //copy the int value into a magnum value
     }
 
-    return at;
+    return mag1;
 }
 
 
 
-int from_magnum_to_int(uint8_t * at){
-    //get an magnum adress and return the corresponding int 
+int from_magnum_to_int(struct magnum * magnum){
+    //get a magnum structure adress and return sthe corresponding int 
     //if it's not possible it return 0 and a consol message
+    int64_t value = 0;
 
-    int value=0;
-    int precision=get_precision(at);
-    int power=get_power(at);
-
-    if (power+precision>4){
+    if (magnum->power+abs(magnum->sign_n_prec)>4){
         printf("the number is too big to be converted in integer\n");
         return 0;
     }
-    if (power<0){
+    if (magnum->power<0){
         printf("the number is too small to be converted in integer\n");
         return 0;
     }
 
-    for (int i = 0; i < precision; i++){
-        value+=at[precision-i+3]<<8*(i+power);
+    for (int i = 0; i < abs(magnum->sign_n_prec); i++){
+        value+=magnum->value[abs(magnum->sign_n_prec)-i-1]<<8*(i+magnum->power);
     }
 
-    if (get_sign(at))
+    if (magnum->sign_n_prec<0)
         value=~value+1;
 
     return value;
 }
 
+void free_magnum(struct magnum * magnum){
+    free(magnum->value);
+    free(magnum);
+}
+
+
 
 int main(void){
+    // int8_t t[1] = {15};
+    // struct magnum mag1 = {156,0,t};
+    // struct magnum * ptr_mag1 = &mag1;
     
-    uint8_t * at =to_magnum_from_int(-2147483647);
+    struct magnum * at =to_magnum_from_int(-549);
 
-    afficher_tableau(at, (((at[0])&(~(1<<7))<<8)+at[1]) + 4);
-    printf("precision : %d\n", get_precision(at));
-    printf("power : %d\n", get_power(at));
-    printf("sign : %d\n", get_sign(at));
+    afficher_tableau(at->value, abs(at->sign_n_prec));
+    printf("precision : %d\n", abs(at->sign_n_prec));
+    printf("power : %d\n", at->power);
+    printf("sign : %d\n", at->sign_n_prec<0);
     printf("a = %d", from_magnum_to_int(at));
 
-    free(at);
+    free_magnum(at);
     return 0;
 }
