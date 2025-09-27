@@ -39,7 +39,7 @@ struct magnum * to_magnum_from_int(int a){
 
 
 int from_magnum_to_int(struct magnum * magnum){
-    //get a magnum structure adress and return sthe corresponding int 
+    //get a magnum structure adress and return the corresponding int 
     //if it's not possible it return 0 and a consol message
     int64_t value = 0;
 
