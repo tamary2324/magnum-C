@@ -62,6 +62,51 @@ int from_magnum_to_int(struct magnum * magnum){
     return value;
 }
 
+
+struct magnum * to_magnum_from_double(double  a){ 
+    //get an double and return the adress of the corresponding magnum structure allocated on the stack
+    // ! the argument have to be a double !
+    int64_t fl = *(int64_t*)&a;
+    int64_t fl_power = ((int16_t)((fl>>(int64_t)52)&((int64_t)2047))-(int16_t)1075);
+    int64_t power_corection = (fl_power%8+8)%8;
+    int64_t precision=7;
+    struct magnum * mag1 = (struct magnum*) malloc(sizeof(struct magnum));
+
+    mag1->power = fl_power/8;
+    if (fl_power<0&&power_corection<4)
+        mag1->power--;
+
+    if (power_corection>=4){
+        precision=8;
+        power_corection=power_corection-8;
+        mag1->power--;
+    }
+    if (fl<0)
+        mag1->sign_n_prec = ~precision+1;
+    else
+        mag1->sign_n_prec = precision;
+
+    mag1->value = (uint8_t *) malloc(abs(mag1->sign_n_prec)*sizeof(uint8_t));
+
+    for (int64_t i = 0; i < precision; i++){
+        if (power_corection>0)
+            mag1->value[i]=(((fl&~((int64_t)4095<<(int64_t)52))<<power_corection)>>   //put a mask to get only the fraction of the double
+            (((precision-i-(int64_t)1)*(int64_t)8)))%256;     //cut the fraction in piece for it to be copy into the magnum
+        else
+            mag1->value[i]=(((fl&~((int64_t)4095<<(int64_t)52)))>>
+            (((precision-i-(int64_t)1)*(int64_t)8)-power_corection))%256;
+    }
+    if (fl_power!=-1023){   //correct mantissa
+        if (power_corection>0)
+            mag1->value[0]+=16<<power_corection;
+        else
+            mag1->value[0]+=16>>(~power_corection+1);
+    }
+    // call clean magnum there
+    return mag1;
+}
+
+
 void free_magnum(struct magnum * magnum){
     free(magnum->value);
     free(magnum);
@@ -74,13 +119,12 @@ int main(void){
     // struct magnum mag1 = {156,0,t};
     // struct magnum * ptr_mag1 = &mag1;
     
-    struct magnum * at =to_magnum_from_int(-549);
-
+    struct magnum * at =to_magnum_from_double(-64.);
     afficher_tableau(at->value, abs(at->sign_n_prec));
     printf("precision : %d\n", abs(at->sign_n_prec));
     printf("power : %d\n", at->power);
     printf("sign : %d\n", at->sign_n_prec<0);
-    printf("a = %d", from_magnum_to_int(at));
+    // printf("a = %d", from_magnum_to_int(at));
 
     free_magnum(at);
     return 0;
