@@ -22,7 +22,7 @@ void afficher_float(double n){//voir ex 47 tp6
     //then print the binary representation of the number
     printf("fl = %f\n",n);
     int64_t fl = *(int64_t*)&n;
-    printf("spppppppppppffffffffffffffffffffffffffffffffffffffffffffffffffff\n",fl);
+    printf("spppppppppppffffffffffffffffffffffffffffffffffffffffffffffffffff\n");
     int i = 0;
     int64_t un = 1;
     while (i<64){ 
