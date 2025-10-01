@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "display.h" 
+//gcc magnum_def.c convert.c display.c mag_c_test.c
 
 struct magnum{
     int16_t sign_n_prec;//signed int 16 

@@ -13,7 +13,7 @@ struct magnum * to_magnum_from_int(int a){
     }
 
     if (a<0)
-        mag1->sign_n_prec = ~precision+1;
+        mag1->sign_n_prec = -precision;
     else
         mag1->sign_n_prec = precision;
     
@@ -48,7 +48,7 @@ int from_magnum_to_int(struct magnum * magnum){
     }
 
     if (magnum->sign_n_prec<0)
-        value=~value+1;
+        value=-value;
 
     return value;
 }
@@ -57,7 +57,7 @@ int from_magnum_to_int(struct magnum * magnum){
 struct magnum * to_magnum_from_double(double a){ 
     //get an double and return the adress of the corresponding magnum structure allocated on the stack
     // ! the argument have to be a double !
-    int64_t fl = *(int64_t*)&a;
+    int64_t a_as_int = *(int64_t*)&a;
     int64_t fl_power = ((int16_t)((fl>>(int64_t)52)&((int64_t)2047))-(int16_t)1075);
     int64_t power_correction = (fl_power%8+8)%8;
     int64_t precision=7;
@@ -73,25 +73,26 @@ struct magnum * to_magnum_from_double(double a){
         mag1->power--;
     }
     if (fl<0)
-        mag1->sign_n_prec = ~precision+1;
+        mag1->sign_n_prec = -precision;
     else
         mag1->sign_n_prec = precision;
 
     mag1->value = (uint8_t *) malloc(abs(mag1->sign_n_prec)*sizeof(uint8_t));
 
+    int64_t fraction_part_mask = ~((int64_t)4095<<(int64_t)52);
     for (int64_t i = 0; i < precision; i++){
         if (power_correction>0)
-            mag1->value[i]=(((fl&~((int64_t)4095<<(int64_t)52))<<power_correction)>>   //put a mask to get only the fraction of the double
+            mag1->value[i]=(((fl&fraction_part_mask)<<power_correction)>>   //put a mask to get only the fraction of the double
             (((precision-i-(int64_t)1)*(int64_t)8)))%256;     //cut the fraction in piece for it to be copy into the magnum
         else
-            mag1->value[i]=(((fl&~((int64_t)4095<<(int64_t)52)))>>
+            mag1->value[i]=(((fl&fraction_part_mask))>>
             (((precision-i-(int64_t)1)*(int64_t)8)-power_correction))%256;
     }
     if (fl_power!=-1023){   //correct mantissa
         if (power_correction>0)
             mag1->value[0]+=16<<power_correction;
         else
-            mag1->value[0]+=16>>(~power_correction+1);
+            mag1->value[0]+=16>>(-power_correction);
     }
     clean_magnum(mag1);
     return mag1;
