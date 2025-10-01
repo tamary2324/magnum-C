@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <math.h>
 #include "magnum_def.h"
 
 
@@ -103,3 +104,36 @@ struct magnum * to_magnum_from_double(double a){
     return mag1;
 }
 
+
+double from_magnum_to_double(struct magnum * magnum){
+    //get a magnum structure adress and return the corresponding double 
+    //if it's not possible it return 0 and a consol message
+    double value = 0;
+
+    if (magnum->power+abs(magnum->sign_n_prec)>128){
+        printf("the number is too big to be converted in float\n");
+        return 0.;
+    }
+    if (magnum->power+abs(magnum->sign_n_prec)<-133){
+        printf("the number is too small to be converted in float\n");
+        return 0.;
+    }
+
+    int correction = 0;
+    while ((magnum->value[0]<<correction)<128){
+        correction++;
+    }
+    correction++;
+
+    for (int i = 52+correction; i > correction; i--){
+        value+=(double)(((magnum->value[i/8])&(1<<i%8))>>(i%8));
+        value /= 2;
+    }
+
+    value = pow(value, (double)(magnum->power*8+correction));
+
+    if (magnum->sign_n_prec<0)
+        value=-value;
+
+    return value;
+}
