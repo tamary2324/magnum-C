@@ -32,7 +32,7 @@ void clean_magnum(struct magnum * magnum){
         }
         
         if (magnum->sign_n_prec<0)
-            magnum->sign_n_prec = ~(abs(magnum->sign_n_prec)-up-down)+1;
+            magnum->sign_n_prec = -(abs(magnum->sign_n_prec)-up-down);
         else
             magnum->sign_n_prec = (abs(magnum->sign_n_prec)-up-down);
         magnum->power+=up;

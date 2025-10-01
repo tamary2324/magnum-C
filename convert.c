@@ -69,7 +69,7 @@ struct magnum * to_magnum_from_double(double a){
 
     if (power_correction>=4){
         precision=8;
-        power_corection=power_corection-8;
+        power_correction=power_correction-8;
         mag1->power--;
     }
     if (fl<0)
@@ -96,3 +96,4 @@ struct magnum * to_magnum_from_double(double a){
     clean_magnum(mag1);
     return mag1;
 }
+

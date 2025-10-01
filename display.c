@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
-void afficher (int n){ //voir ex 17 tp2
+void display_int(int n){ //voir ex 17 tp2
     //get an integer and print its full binary representation 
     //remove the following comment if you wanna have only the useful part of the number
     int i = 0;
@@ -17,7 +17,7 @@ void afficher (int n){ //voir ex 17 tp2
     printf("\n");
 }
 
-void afficher_double(double n){//voir ex 47 tp6
+void display_double(double n){//voir ex 47 tp6
     //get a double and print the number, markers to differenciate sign, power and fraction part
     //then print the binary representation of the number
     printf("fl = %f\n",n);
@@ -33,7 +33,7 @@ void afficher_double(double n){//voir ex 47 tp6
     printf("\n");
 }
 
-void afficher_tableau(uint8_t * t, int taille){ //voir ex 36 tp5
+void display_tableau(uint8_t * t, int taille){ //voir ex 36 tp5
     //get the array adress and lenght and print it readibly
     printf("[");
     for (int i = 0; i < taille-1; i++){
@@ -42,7 +42,7 @@ void afficher_tableau(uint8_t * t, int taille){ //voir ex 36 tp5
     printf("%d]\n",t[taille-1]);
 }
 
-void afficher_matrice(int ** matrice,int n, int m){
+void display_matrice(int ** matrice,int n, int m){
     //get a two dimmensionnal array and its size and print it readibly
     //n is for the array of pointer and m for every other arrays
     for (int i = 0; i < n; i++){
