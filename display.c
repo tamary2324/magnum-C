@@ -17,7 +17,7 @@ void afficher (int n){ //voir ex 17 tp2
     printf("\n");
 }
 
-void afficher_float(double n){//voir ex 47 tp6
+void afficher_double(double n){//voir ex 47 tp6
     //get a double and print the number, markers to differenciate sign, power and fraction part
     //then print the binary representation of the number
     printf("fl = %f\n",n);
