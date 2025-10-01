@@ -4,6 +4,7 @@
 #include "display.h" 
 //gcc magnum_def.c convert.c display.c mag_c_test.c
 
+
 struct magnum{
     int16_t sign_n_prec;//signed int 16 
     //abs(sign_n_prec) giving the precision 
@@ -50,7 +51,7 @@ void free_magnum(struct magnum * magnum){
 
 
 void print_magnum_info(struct magnum * magnum){
-    afficher_tableau(magnum->value, abs(magnum->sign_n_prec));
+    display_tableau(magnum->value, abs(magnum->sign_n_prec));
     printf("precision : %d\n", abs(magnum->sign_n_prec));
     printf("power : %d\n", magnum->power);
     printf("sign : %d\n", magnum->sign_n_prec<0);

@@ -58,8 +58,8 @@ struct magnum * to_magnum_from_double(double a){
     //get an double and return the adress of the corresponding magnum structure allocated on the stack
     // ! the argument have to be a double !
     int64_t a_as_int = *(int64_t*)&a;
-    int64_t fl_power = ((int16_t)((fl>>(int64_t)52)&((int64_t)2047))-(int16_t)1075);
-    int64_t power_correction = (fl_power%8+8)%8;
+    int64_t fl_power = ((int16_t)((a_as_int>>(int64_t)52)&((int64_t)2047))-(int16_t)1075);
+    int64_t power_correction = (fl_power%8+8)%8;    //get positive modulo
     int64_t precision=7;
     struct magnum * mag1 = (struct magnum*) malloc(sizeof(struct magnum));
 
@@ -69,10 +69,10 @@ struct magnum * to_magnum_from_double(double a){
 
     if (power_correction>=4){
         precision=8;
-        power_correction=power_correction-8;
+        power_correction-=8;
         mag1->power--;
     }
-    if (fl<0)
+    if (a_as_int<0)
         mag1->sign_n_prec = -precision;
     else
         mag1->sign_n_prec = precision;
@@ -80,20 +80,25 @@ struct magnum * to_magnum_from_double(double a){
     mag1->value = (uint8_t *) malloc(abs(mag1->sign_n_prec)*sizeof(uint8_t));
 
     int64_t fraction_part_mask = ~((int64_t)4095<<(int64_t)52);
-    for (int64_t i = 0; i < precision; i++){
+    for (int64_t i = 0; i < precision; i++){ 
+        //copy the fraction part of the double into magnum->value
+        //apply power correction to match the correct double power 
+        //(power is by octet in magnum while it's by bit in double)
         if (power_correction>0)
-            mag1->value[i]=(((fl&fraction_part_mask)<<power_correction)>>   //put a mask to get only the fraction of the double
-            (((precision-i-(int64_t)1)*(int64_t)8)))%256;     //cut the fraction in piece for it to be copy into the magnum
+            mag1->value[i]=(((a_as_int&fraction_part_mask)<<power_correction)>>
+            (((precision-i-(int64_t)1)*(int64_t)8)))%256;    
         else
-            mag1->value[i]=(((fl&fraction_part_mask))>>
+            mag1->value[i]=(((a_as_int&fraction_part_mask))>>
             (((precision-i-(int64_t)1)*(int64_t)8)-power_correction))%256;
     }
+
     if (fl_power!=-1023){   //correct mantissa
         if (power_correction>0)
             mag1->value[0]+=16<<power_correction;
         else
             mag1->value[0]+=16>>(-power_correction);
     }
+    
     clean_magnum(mag1);
     return mag1;
 }
