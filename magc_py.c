@@ -1,10 +1,14 @@
 #include <Python.h>
 
-int Cfib(int n){
+int c_fib(int n){
     if (n < 2)
         return n;
     else
-        return Cfib(n-1)+Cfib(n-2);
+        return c_fib(n-1)+c_fib(n-2);
+}
+
+int c_sum(int a, int b){
+    return a + b;
 }
 
 static PyObject* hello(PyObject* self, PyObject* args) {
@@ -16,12 +20,21 @@ static PyObject* fib(PyObject* self, PyObject* args) {
     int n;
     if(!PyArg_ParseTuple(args, "i", &n)) // "i" tells Python.h to expect a single integer
         return NULL;
-    return Py_BuildValue("i", Cfib(n));
+    return Py_BuildValue("i", c_fib(n));
+}
+
+static PyObject* sum(PyObject* self, PyObject* args) {
+    int a;
+    int b;
+    if(!PyArg_ParseTuple(args, "ii", &a, &b))
+        return NULL;
+    return Py_BuildValue("i", c_sum(a, b));
 }
 
 static PyMethodDef Methods[] = {
     {"hello", hello, METH_NOARGS, "Print hello"},
     {"fib", fib, METH_VARARGS, "calculate fib"},
+    {"sum", sum, METH_VARARGS, "sum"},
     {NULL, NULL, 0, NULL}
 };
 
