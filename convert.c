@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <math.h>
 #include "magnum_def.h"
+#include "bit_op.h"
 
 
 struct magnum * to_magnum_from_int(int a){
@@ -57,49 +58,41 @@ int from_magnum_to_int(struct magnum * magnum){
 
 struct magnum * to_magnum_from_double(double a){ 
     //get an double and return the adress of the corresponding magnum structure allocated on the stack
-    // ! the argument have to be a double !
     int64_t a_as_int = *(int64_t*)&a;
-    int64_t fl_power = ((int16_t)((a_as_int>>(int64_t)52)&((int64_t)2047))-(int16_t)1075);
-    int64_t power_correction = (fl_power%8+8)%8;    //get positive modulo
-    int64_t precision=7;
     struct magnum * mag1 = (struct magnum*) malloc(sizeof(struct magnum));
 
-    mag1->power = fl_power/8;
-    if (fl_power<0&&power_correction<4)
-        mag1->power--;
-
-    if (power_correction>=4){
-        precision=8;
-        power_correction-=8;
-        mag1->power--;
-    }
-    if (a_as_int<0)
-        mag1->sign_n_prec = -precision;
+    if (a<0.)
+        mag1->sign_n_prec = -7;
     else
-        mag1->sign_n_prec = precision;
+        mag1->sign_n_prec = 7;
 
     mag1->value = (uint8_t *) malloc(abs(mag1->sign_n_prec)*sizeof(uint8_t));
-
-    int64_t fraction_part_mask = ~((int64_t)4095<<(int64_t)52);
-    for (int64_t i = 0; i < precision; i++){ 
-        //copy the fraction part of the double into magnum->value
-        //apply power correction to match the correct double power 
-        //(power is by octet in magnum while it's by bit in double)
-        if (power_correction>0)
-            mag1->value[i]=(((a_as_int&fraction_part_mask)<<power_correction)>>
-            (((precision-i-(int64_t)1)*(int64_t)8)))%256;    
-        else
-            mag1->value[i]=(((a_as_int&fraction_part_mask))>>
-            (((precision-i-(int64_t)1)*(int64_t)8)-power_correction))%256;
+    for (int i = 0; i < 7; i++){
+        mag1->value[i] = 0;
     }
 
-    if (fl_power!=-1023){   //correct mantissa
-        if (power_correction>0)
-            mag1->value[0]+=16<<power_correction;
-        else
-            mag1->value[0]+=16>>(-power_correction);
+    int64_t a_power = ((a_as_int >> (int64_t)52) & (int64_t)2047) - 1023;
+
+    if (a_power != -1023){
+        mag1->power = a_power / 8 - 6;
+        int power_correction = (a_power % 8);
+
+        if (power_correction<0){ //normalize correction
+            power_correction = 8+power_correction;
+            mag1->power--;
+        }
+        
+        int64_t a_value = ~((int64_t)4095 << (int64_t)52) & a_as_int;
+        a_value += (int64_t)1 << (int64_t)52; // correct mantissa
+        
+        for (int i = 0; i < 53; i++){
+            _set_bit_magnum(mag1->value, 59 - i - power_correction, (a_value >> (int64_t)(i)) & 1);
+        }
+        // print_magnum_info(mag1);
+        // printf("a_power = %d\n", a_power);
+        // printf("mag1->power = %d\n", mag1->power);
+        // printf("power_correction = %d\n\n", power_correction);
     }
-    
     clean_magnum(mag1);
     return mag1;
 }
@@ -108,7 +101,7 @@ struct magnum * to_magnum_from_double(double a){
 double from_magnum_to_double(struct magnum * magnum){
     //get a magnum structure adress and return the corresponding double 
     //if it's not possible it return 0 and a consol message
-    double value = 0;
+    int64_t value = 0;
 
     if (magnum->power+abs(magnum->sign_n_prec)>128){
         printf("the number is too big to be converted in float\n");
@@ -118,22 +111,32 @@ double from_magnum_to_double(struct magnum * magnum){
         printf("the number is too small to be converted in float\n");
         return 0.;
     }
-
-    int correction = 0;
-    while ((magnum->value[0]<<correction)<128){
-        correction++;
+    if (magnum->value[0]==0)
+        clean_magnum(magnum);
+    
+    int power_correction = 0;
+    while (_get_bit_magnum(magnum->value,power_correction)!=1){
+        power_correction++;
     }
-    correction++;
+    power_correction++; //skip mantissa
 
-    for (int i = 52+correction; i > correction; i--){
-        value+=(double)(((magnum->value[i/8])&(1<<i%8))>>(i%8));
-        value /= 2;
+    for (int i = 0; i < 52; i++){
+        if (power_correction + i >= abs(magnum->sign_n_prec) * 8)
+            break;
+
+        value += (int64_t)_get_bit_magnum(magnum->value, i + power_correction) << (int64_t)(51-i);
     }
 
-    value = pow(value, (double)(magnum->power*8+correction));
+    int double_power = (magnum->power + abs(magnum->sign_n_prec)) * 8 - power_correction + 1023;
+    value += ((int64_t)double_power << (int64_t)52);
+
+    double value_as_double = *((double *)&value);
 
     if (magnum->sign_n_prec<0)
-        value=-value;
+        value_as_double=-value_as_double;
+    
+    // display_double(value_as_double);
+    // printf("value_as_double = %f\n", value_as_double);
 
-    return value;
+    return value_as_double;
 }
