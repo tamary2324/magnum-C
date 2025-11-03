@@ -10,9 +10,71 @@ struct magnum{
     //abs(sign_n_prec) giving the precision 
     //(sign_n_prec<0) giving the sign of the magnum 
     int16_t power;//signed power value
-    int8_t * value;//adress of the magnum array on the stack
+    uint8_t * value;//adress of the magnum array on the stack
 };
 
+
+void change_prec(struct magnum * magnum, int n){
+    //change the precision of a magnum of n octet by adding somme 0 or by rounding the value if n<0
+    if (abs(magnum->sign_n_prec) + n <= 0){
+        printf("the precision change is out of limit");
+        return;
+    }
+
+    uint8_t* new_adress = (uint8_t *) malloc((abs(magnum->sign_n_prec)+n)*sizeof(uint8_t));
+
+    if (n>0){
+        for (int i = 0; i < n; i++){
+            new_adress[i] = 0;
+        }
+        for (int i = 0; i < abs(magnum->sign_n_prec); i++){
+            new_adress[i+n] = magnum->value[i];
+        }
+        
+    }
+
+    if (n<0){
+        if (magnum->value[abs(magnum->sign_n_prec)+n+1]>=128){
+            int i = 0;
+            while (magnum->value[abs(magnum->sign_n_prec) + n - i]==255){
+
+                if (abs(magnum->sign_n_prec) + n - i < 0){
+                    //check the case where the rounding exced the magnum size
+                    new_adress[0] = 1;
+                    for (int i = 1; i < abs(magnum->sign_n_prec) + n; i++){
+                        new_adress[i] = 0;
+                    }
+
+                    if (magnum->sign_n_prec<0)
+                        magnum->sign_n_prec = magnum->sign_n_prec - n;
+                    else
+                        magnum->sign_n_prec = magnum->sign_n_prec + n;
+
+                    magnum->power++;
+
+                    free(magnum->value);
+                    magnum->value = new_adress;
+                    return;
+                }
+
+                i++;
+            }
+            magnum->value[abs(magnum->sign_n_prec) + n - i] += 1;
+        }
+        for (int i = 0; i < abs(magnum->sign_n_prec) + n; i++){
+            new_adress[i] = magnum->value[i];
+        }
+        
+    }
+
+    if (magnum->sign_n_prec<0)
+        magnum->sign_n_prec = magnum->sign_n_prec - n;
+    else
+        magnum->sign_n_prec = magnum->sign_n_prec + n;
+    
+    free(magnum->value);
+    magnum->value = new_adress;
+}
 
 
 void clean_magnum(struct magnum * magnum){
