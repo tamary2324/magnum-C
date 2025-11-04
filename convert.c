@@ -26,6 +26,7 @@ struct magnum * to_magnum_from_int(int a){
         mag1->value[i]=(abs(a)>>((precision-i-1)*8))%256;  //copy the int value into a magnum value
     }
 
+    _clean_magnum(mag1);
     return mag1;
 }
 
@@ -119,7 +120,7 @@ struct magnum * to_magnum_from_double(double a){
         }
     }
 
-    clean_magnum(mag1);
+    _clean_magnum(mag1);
     return mag1;
 }
 
@@ -129,7 +130,7 @@ double from_magnum_to_double(struct magnum * magnum){
     //if it's not possible it return 0 and a consol message
 
     if (magnum->value[0]==0)
-        clean_magnum(magnum);
+        _clean_magnum(magnum);
 
     
     int power_correction = 0;
@@ -140,7 +141,7 @@ double from_magnum_to_double(struct magnum * magnum){
     int64_t value = 0;
 
     int double_power = (magnum->power + abs(magnum->sign_n_prec)) * 8 - power_correction + 1022;
-    printf("double_power = %d\n", double_power);
+
     if (double_power>=2047){
         printf("the number is too big to be converted in float\n");
         return 0.;
@@ -161,7 +162,6 @@ double from_magnum_to_double(struct magnum * magnum){
         }
     }
     else{
-        printf("pow c = %d\n", power_correction);
         for (int i = 0; i < 52 + double_power; i++){
             if (power_correction + i >= abs(magnum->sign_n_prec) * 8)
                 break;

@@ -14,8 +14,11 @@ struct magnum{
 };
 
 
-void change_prec(struct magnum * magnum, int n){
+void _change_prec(struct magnum * magnum, int n){
     //change the precision of a magnum of n octet by adding somme 0 or by rounding the value if n<0
+    if (n == 0)
+        return;
+    
     if (abs(magnum->sign_n_prec) + n <= 0){
         printf("the precision change is out of limit");
         return;
@@ -77,7 +80,32 @@ void change_prec(struct magnum * magnum, int n){
 }
 
 
-void clean_magnum(struct magnum * magnum){
+void _decrease_power(struct magnum * magnum, int n){
+    if (n<0)
+        _change_prec(magnum, -n);
+    if (n>0){
+        uint8_t* new_adress = (uint8_t *) malloc((abs(magnum->sign_n_prec) + n) * sizeof(uint8_t));
+        for (int i = 0; i < abs(magnum->sign_n_prec); i++){
+            new_adress[i] = magnum->value[i];
+        }
+        for (int i = abs(magnum->sign_n_prec); i < abs(magnum->sign_n_prec) + n; i++){
+            new_adress[i] = 0;
+        }
+
+        free(magnum->value);
+        magnum->value = new_adress;
+
+        magnum->power -= n;
+
+        if (magnum->sign_n_prec<0)
+            magnum->sign_n_prec = magnum->sign_n_prec - n;
+        else
+            magnum->sign_n_prec = magnum->sign_n_prec + n;
+    }
+}
+
+
+void _clean_magnum(struct magnum * magnum){
     //get a magnum address and remove the unused part at the begining/end of the value
     int down = 0;
     while (magnum->value[down]==0&&down<abs(magnum->sign_n_prec)-1){
