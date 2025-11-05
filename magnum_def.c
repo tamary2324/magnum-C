@@ -111,22 +111,26 @@ void _clean_magnum(struct magnum * magnum){
     while (magnum->value[down]==0&&down<abs(magnum->sign_n_prec)-1){
         down++;
     }
+    
     int up = 0;
     while (magnum->value[abs(magnum->sign_n_prec)-up-1]==0&&up<abs(magnum->sign_n_prec)-1){
         up++;
     }
+
     if (up==0&&down==0)
         return;
     else {
-        uint8_t* new_adress = (uint8_t *) malloc((abs(magnum->sign_n_prec)-up-down)*sizeof(uint8_t));
-        for (int i = 0; i < abs(magnum->sign_n_prec)-down-up; i++){
+        int new_size = abs(magnum->sign_n_prec) - up - down;
+        uint8_t* new_adress = (uint8_t *) malloc((new_size)*sizeof(uint8_t));
+
+        for (int i = 0; i < new_size; i++){
             new_adress[i] = magnum->value[i+down];
         }
         
         if (magnum->sign_n_prec<0)
-            magnum->sign_n_prec = -(abs(magnum->sign_n_prec)-up-down);
+            magnum->sign_n_prec = -(new_size);
         else
-            magnum->sign_n_prec = (abs(magnum->sign_n_prec)-up-down);
+            magnum->sign_n_prec = (new_size);
         magnum->power+=up;
         free(magnum->value);
         magnum->value = new_adress;
