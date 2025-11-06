@@ -5,6 +5,7 @@ struct magnum{
     int16_t power;
     uint8_t * value;
 };
+struct magnum *_init_magnum();
 void _change_prec(struct magnum *magnum, int n);
 void _decrease_power(struct magnum *magnum, int n);
 void _clean_magnum(struct magnum *magnum);

@@ -14,6 +14,19 @@ struct magnum{
 };
 
 
+struct magnum * _init_magnum(){
+    struct magnum * new_magnum = (struct magnum*) malloc(sizeof(struct magnum));
+
+    new_magnum->power = 0;
+    new_magnum->sign_n_prec = 1;
+    
+    new_magnum->value = (uint8_t *) malloc(sizeof(uint8_t));
+    new_magnum->value[0] = 0;
+
+    return new_magnum;
+}
+
+
 void _change_prec(struct magnum * magnum, int n){
     //change the precision of a magnum of n octet by adding somme 0 or by rounding the value if n<0
     if (n == 0)
