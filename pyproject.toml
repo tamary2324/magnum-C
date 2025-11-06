@@ -1,0 +1,9 @@
+[project]
+name = "pymagc"
+version = "1.0.0"
+
+[tool.setuptools]
+packages = ["pymagc", "pymagc.module_creator"]
+
+[tool.autopep8]
+max_line_length = 120

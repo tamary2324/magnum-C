@@ -2,4 +2,6 @@ mag_c_test.c
 *.out
 *.exe
 *.vscode
-py_test.py
+test*
+*.txt
+__pycache__
