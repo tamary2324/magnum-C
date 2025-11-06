@@ -69,8 +69,8 @@ void incremental(struct magnum * magnum, unsigned int n){
 
 
 void add(struct magnum * mag1, struct magnum * mag2){
+    //add mag1 to mag2
     _level(mag1, mag2);
-
 
     if ((mag1->sign_n_prec > 0) == (mag2->sign_n_prec > 0)){
         int prec = abs(mag1->sign_n_prec);
@@ -127,7 +127,9 @@ void add(struct magnum * mag1, struct magnum * mag2){
 
 
 struct magnum * sum(struct magnum * mag1, struct magnum * mag2){
-    struct magnum *result = copy(mag1);
+    //return a magnum which is the sum of the two given in argument
+    struct magnum *result = _new_magnum();
+    copy(mag1);
     add(result, mag2);
     return result;
 }

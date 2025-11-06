@@ -14,16 +14,22 @@ struct magnum{
 };
 
 
-struct magnum * _init_magnum(){
-    struct magnum * new_magnum = (struct magnum*) malloc(sizeof(struct magnum));
+struct magnum * _new_magnum(void){
+    //allocate a magnum structure on the stack
+    return (struct magnum*) malloc(sizeof(struct magnum));
+}
 
-    new_magnum->power = 0;
-    new_magnum->sign_n_prec = 1;
-    
-    new_magnum->value = (uint8_t *) malloc(sizeof(uint8_t));
-    new_magnum->value[0] = 0;
 
-    return new_magnum;
+void _init_magnum(struct magnum * magnum){
+    //set magnum to zero
+    magnum->power = 0;
+    magnum->sign_n_prec = 1;
+
+    if (magnum->value != NULL)
+        free(magnum->value);
+
+    magnum->value = (uint8_t *) malloc(sizeof(uint8_t));
+    magnum->value[0] = 0;
 }
 
 
@@ -94,6 +100,7 @@ void _change_prec(struct magnum * magnum, int n){
 
 
 void _decrease_power(struct magnum * magnum, int n){
+    //decrease power of magnum by n by adding 0 at the end of value and increasing prec
     if (n<0)
         _change_prec(magnum, -n);
     if (n>0){
@@ -120,6 +127,7 @@ void _decrease_power(struct magnum * magnum, int n){
 
 void _clean_magnum(struct magnum * magnum){
     //get a magnum address and remove the unused part at the begining/end of the value
+
     int down = 0;
     while (magnum->value[down]==0&&down<abs(magnum->sign_n_prec)-1){
         down++;
@@ -151,18 +159,20 @@ void _clean_magnum(struct magnum * magnum){
 }
 
 
-struct magnum * copy(struct magnum * magnum){
-    struct magnum * new_magnum = (struct magnum*) malloc(sizeof(struct magnum));
+void copy(struct magnum * magnum, struct magnum * new_magnum){
+    //copy magnum into new_magnum
 
     new_magnum->power = magnum->power;
     new_magnum->sign_n_prec = magnum->sign_n_prec;
+
+    if (new_magnum->value != NULL)
+        free(new_magnum->value);
 
     int prec = abs(magnum->sign_n_prec);
     new_magnum->value = (uint8_t *) malloc(prec*sizeof(uint8_t));
     for (int i = 0; i < prec; i++){
         new_magnum->value[i] = magnum->value[i];
     }
-    return new_magnum;
 }
 
 

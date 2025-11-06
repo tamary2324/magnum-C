@@ -8,7 +8,7 @@
 
 struct magnum * to_magnum_from_int(int a){
     //get an int and return the adress of the corresponding magnum structure allocated on the stack
-    struct magnum * mag1 = (struct magnum*) malloc(sizeof(struct magnum));
+    struct magnum * mag1 = _new_magnum();
     int precision=0;
     while (((abs(a)>>(precision*8))>0)&&(precision<4)){ //get needed precision
         precision++;
@@ -59,7 +59,7 @@ int from_magnum_to_int(struct magnum * magnum){
 
 struct magnum * to_magnum_from_double(double a){ 
     //get an double and return the adress of the corresponding magnum structure allocated on the stack
-    struct magnum * mag1 = (struct magnum*) malloc(sizeof(struct magnum));
+    struct magnum * mag1 = _new_magnum();
 
     if (a==0.){
         mag1->power = 0;
