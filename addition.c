@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdio.h>
 #include "magnum_def.h"
 
 
@@ -7,6 +8,11 @@ void _carry(struct magnum * magnum, int n, int i){
     //add a carry of n to magnum->value at indice i
     while (n!=0){
         if (i<0){
+            if (n<0){
+                printf("negative carry greater than magnum.");
+                abort();
+            }
+            
             _change_prec(magnum, 1);
             i++;
             continue;
@@ -117,4 +123,15 @@ void add(struct magnum * mag1, struct magnum * mag2){
     }
     _clean_magnum(mag1);
     _clean_magnum(mag2);
+}
+
+
+struct magnum * sum(struct magnum * mag1, struct magnum * mag2){
+    struct magnum *result = copy(mag1);
+    add(result, mag2);
+    return result;
+}
+
+void opposite(struct magnum * magnum){
+    magnum->sign_n_prec = -magnum->sign_n_prec;
 }

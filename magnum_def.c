@@ -138,6 +138,21 @@ void _clean_magnum(struct magnum * magnum){
 }
 
 
+struct magnum * copy(struct magnum * magnum){
+    struct magnum * new_magnum = (struct magnum*) malloc(sizeof(struct magnum));
+
+    new_magnum->power = magnum->power;
+    new_magnum->sign_n_prec = magnum->sign_n_prec;
+
+    int prec = abs(magnum->sign_n_prec);
+    new_magnum->value = (uint8_t *) malloc(prec*sizeof(uint8_t));
+    for (int i = 0; i < prec; i++){
+        new_magnum->value[i] = magnum->value[i];
+    }
+    return new_magnum;
+}
+
+
 void free_magnum(struct magnum * magnum){
     free(magnum->value);
     free(magnum);
