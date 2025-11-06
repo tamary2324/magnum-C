@@ -7,10 +7,10 @@
 
 
 struct magnum * to_magnum_from_int(int a){
-    //get an int and return the adress of the corresponding magnum structure allocated on the stack
+    // get an int and return the adress of the corresponding magnum structure allocated on the stack
     struct magnum * mag1 = _new_magnum();
     int precision=0;
-    while (((abs(a)>>(precision*8))>0)&&(precision<4)){ //get needed precision
+    while (((abs(a)>>(precision*8))>0)&&(precision<4)){ // get needed precision
         precision++;
     }
 
@@ -23,7 +23,7 @@ struct magnum * to_magnum_from_int(int a){
     mag1->value = (uint8_t *) malloc(abs(mag1->sign_n_prec)*sizeof(uint8_t));
 
     for (int i = 0; i < precision; i++){
-        mag1->value[i]=(abs(a)>>((precision-i-1)*8))%256;  //copy the int value into a magnum value
+        mag1->value[i]=(abs(a)>>((precision-i-1)*8))%256;  // copy the int value into a magnum value
     }
 
     _clean_magnum(mag1);
@@ -31,10 +31,9 @@ struct magnum * to_magnum_from_int(int a){
 }
 
 
-
 int from_magnum_to_int(struct magnum * magnum){
-    //get a magnum structure adress and return the corresponding int 
-    //if it's not possible it return 0 and a consol message
+    // get a magnum structure adress and return the corresponding int 
+    // if not possible, return 0 and a console message
     int64_t value = 0;
 
     if (magnum->power+abs(magnum->sign_n_prec)>4){
@@ -58,7 +57,7 @@ int from_magnum_to_int(struct magnum * magnum){
 
 
 struct magnum * to_magnum_from_double(double a){ 
-    //get an double and return the adress of the corresponding magnum structure allocated on the stack
+    // get a double and return the address of the corresponding magnum structure allocated on the stack
     struct magnum * mag1 = _new_magnum();
 
     if (a==0.){
@@ -86,7 +85,7 @@ struct magnum * to_magnum_from_double(double a){
         mag1->power = a_power / 8 - 6;
         int power_correction = (a_power % 8);
 
-        if (power_correction<0){ //normalize correction
+        if (power_correction<0){ // normalize correction
             power_correction = 8+power_correction;
             mag1->power--;
         }
@@ -109,7 +108,7 @@ struct magnum * to_magnum_from_double(double a){
         mag1->power = a_power / 8 - 6;
 
         int power_correction = (a_power % 8);
-        if (power_correction<0){ //normalize correction
+        if (power_correction<0){ // normalize correction
             power_correction = 8+power_correction;
             mag1->power--;
         }
@@ -126,8 +125,8 @@ struct magnum * to_magnum_from_double(double a){
 
 
 double from_magnum_to_double(struct magnum * magnum){
-    //get a magnum structure adress and return the corresponding double 
-    //if it's not possible it return 0 and a consol message
+    // get a magnum structure address and return the corresponding double 
+    // if not possible, return 0 and a console message
 
     if (magnum->value[0]==0)
         _clean_magnum(magnum);

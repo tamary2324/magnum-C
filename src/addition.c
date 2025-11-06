@@ -5,14 +5,14 @@
 
 
 void _carry(struct magnum * magnum, int n, int i){
-    //add a carry of n to magnum->value at indice i
+    // add a carry of n to magnum->value at indice i
     while (n!=0){
         if (i<0){
             if (n<0){
                 printf("negative carry greater than magnum.");
                 abort();
             }
-            
+
             _change_prec(magnum, 1);
             i++;
             continue;
@@ -30,9 +30,8 @@ void _carry(struct magnum * magnum, int n, int i){
 }
 
 
-
 void _level(struct magnum * mag1, struct magnum * mag2){
-    //set two magnum to the same power and precision in order to sum them
+    // set two magnum to the same power and precision in order to sum them
     if (mag1->power > mag2->power)
         _decrease_power(mag1, mag1->power - mag2->power);
     else if (mag1->power < mag2->power)
@@ -42,10 +41,7 @@ void _level(struct magnum * mag1, struct magnum * mag2){
         _change_prec(mag2, abs(mag1->sign_n_prec) - abs(mag2->sign_n_prec));
     else if (abs(mag1->sign_n_prec) < abs(mag2->sign_n_prec))
         _change_prec(mag1, abs(mag2->sign_n_prec) - abs(mag1->sign_n_prec));
-        
-
 }
-
 
 
 void incremental(struct magnum * magnum, unsigned int n){
@@ -67,9 +63,8 @@ void incremental(struct magnum * magnum, unsigned int n){
 }
 
 
-
 void add(struct magnum * mag1, struct magnum * mag2){
-    //add mag1 to mag2
+    // add mag1 to mag2
     _level(mag1, mag2);
 
     if ((mag1->sign_n_prec > 0) == (mag2->sign_n_prec > 0)){
@@ -127,13 +122,15 @@ void add(struct magnum * mag1, struct magnum * mag2){
 
 
 struct magnum * sum(struct magnum * mag1, struct magnum * mag2){
-    //return a magnum which is the sum of the two given in argument
+    // return a magnum which is the sum of the two given in argument
     struct magnum *result = _new_magnum();
     copy(mag1);
     add(result, mag2);
     return result;
 }
 
+
 void opposite(struct magnum * magnum){
+    // set magnum to its opposite
     magnum->sign_n_prec = -magnum->sign_n_prec;
 }

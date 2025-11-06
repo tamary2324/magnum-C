@@ -6,22 +6,22 @@
 
 
 struct magnum{
-    int16_t sign_n_prec;//signed int 16 
-    //abs(sign_n_prec) giving the precision 
-    //(sign_n_prec<0) giving the sign of the magnum 
-    int16_t power;//signed power value
-    uint8_t * value;//adress of the magnum array on the stack
+    int16_t sign_n_prec; // signed int 16 
+    // abs(sign_n_prec) giving the precision 
+    // (sign_n_prec<0) giving the sign of the magnum 
+    int16_t power; // signed power value
+    uint8_t * value; // adress of the magnum array on the stack
 };
 
 
 struct magnum * _new_magnum(void){
-    //allocate a magnum structure on the stack
+    // allocate a magnum structure on the stack
     return (struct magnum*) malloc(sizeof(struct magnum));
 }
 
 
 void _init_magnum(struct magnum * magnum){
-    //set magnum to zero
+    // set magnum to zero
     magnum->power = 0;
     magnum->sign_n_prec = 1;
 
@@ -34,7 +34,7 @@ void _init_magnum(struct magnum * magnum){
 
 
 void _change_prec(struct magnum * magnum, int n){
-    //change the precision of a magnum of n octet by adding somme 0 or by rounding the value if n<0
+    // change the precision of a magnum of n octet by adding 0s or by rounding the value if n<0
     if (n == 0)
         return;
     
@@ -61,7 +61,7 @@ void _change_prec(struct magnum * magnum, int n){
             while (magnum->value[abs(magnum->sign_n_prec) + n - i]==255){
 
                 if (abs(magnum->sign_n_prec) + n - i < 0){
-                    //check the case where the rounding exced the magnum size
+                    // check the case where the rounding exceeds the magnum size
                     new_adress[0] = 1;
                     for (int i = 1; i < abs(magnum->sign_n_prec) + n; i++){
                         new_adress[i] = 0;
@@ -100,7 +100,7 @@ void _change_prec(struct magnum * magnum, int n){
 
 
 void _decrease_power(struct magnum * magnum, int n){
-    //decrease power of magnum by n by adding 0 at the end of value and increasing prec
+    // decrease power of magnum by n by adding 0 at the end of value and increasing prec
     if (n<0)
         _change_prec(magnum, -n);
     if (n>0){
@@ -126,7 +126,7 @@ void _decrease_power(struct magnum * magnum, int n){
 
 
 void _clean_magnum(struct magnum * magnum){
-    //get a magnum address and remove the unused part at the begining/end of the value
+    // get a magnum address and remove the unused part at the begining/end of the value
 
     int down = 0;
     while (magnum->value[down]==0&&down<abs(magnum->sign_n_prec)-1){
@@ -160,7 +160,7 @@ void _clean_magnum(struct magnum * magnum){
 
 
 void copy(struct magnum * magnum, struct magnum * new_magnum){
-    //copy magnum into new_magnum
+    // copy magnum into new_magnum
 
     new_magnum->power = magnum->power;
     new_magnum->sign_n_prec = magnum->sign_n_prec;
