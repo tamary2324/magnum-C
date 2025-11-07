@@ -3,5 +3,5 @@ mag_c_test.c
 *.exe
 *.vscode
 test*
-*.txt
+test_module.txt
 __pycache__

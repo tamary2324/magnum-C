@@ -14,6 +14,22 @@ class Translator:
         self.stored_vars = {}
         self.translation = []
 
+    def split_lines(self, text):
+        depth = 0
+        last_end = 0
+        split_string = []
+        for idx, char in enumerate(text):
+            if char == ' ':
+                if depth == 0:
+                    split_string.append(text[last_end:idx])
+                    last_end = idx+1
+            elif char == '(':
+                depth += 1
+            elif char == ')':
+                depth -= 1
+        split_string.append(text[last_end:])
+        return split_string
+
     def split(self, string):
         depth = 0
         last_end = 0
@@ -36,7 +52,7 @@ class Translator:
     def translate_expr(self, expr, type):
         expr = expr[1:-1]
         split_expr = self.split(expr)
-        print(split_expr)
+        print("expr", split_expr)
         expr_to_write = ''  # (42 * 43) + (a * b) -> [(42 * 43), +, (a * b)]
         return expr_to_write
 
@@ -62,7 +78,7 @@ class Translator:
 
     def translate_line(self, line):
         words = self.split(line)
-        print(words)
+        print("words", words)
         if words[0] in self.processes:
             n_of_args_needed = self.processes[words[0]][1]
             if len(words) - 1 < n_of_args_needed:
@@ -75,7 +91,7 @@ class Translator:
         with open(self.file_path, "r") as file:
             str_file = file.read()
             file.close()
-        lines = str_file.split("\n")
+        lines = self.split_lines(str_file.strip("\n"))
         for line in lines:
             self.translate_line(line)
         return self.translation
@@ -100,9 +116,20 @@ MAKE {var name} {type: int / mag} {value};
 SET {var name} {expr};
 CYCLE {iterator} {start} {stop} {script name};
 WHILE {condition} {script name};
-FUNC {func name} {script name}
+FUNC {func name} {type}
 
 ## expr
 expr -> what can be found in the def of a variable
+
+
+TO DO: set ";" as seperator
+
+CYCLE i 0 n {
+    SET ...
+    ...
+}
+
+FUNC a ((type name) (type name) (type name) ... ) (output type) {
+}
 
 '''

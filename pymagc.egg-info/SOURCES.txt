@@ -1,0 +1,11 @@
+README.md
+pyproject.toml
+pymagc/__init__.py
+pymagc.egg-info/PKG-INFO
+pymagc.egg-info/SOURCES.txt
+pymagc.egg-info/dependency_links.txt
+pymagc.egg-info/top_level.txt
+pymagc/module_creator/__init__.py
+pymagc/module_creator/translator.py
+tests/test_py.py
+tests/test_translator.py
