@@ -124,7 +124,7 @@ void add(struct magnum * mag1, struct magnum * mag2){
 struct magnum * sum(struct magnum * mag1, struct magnum * mag2){
     // return a magnum which is the sum of the two given in argument
     struct magnum *result = _new_magnum();
-    copy(mag1);
+    copy(result, mag1);
     add(result, mag2);
     return result;
 }

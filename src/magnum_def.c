@@ -159,7 +159,7 @@ void _clean_magnum(struct magnum * magnum){
 }
 
 
-void copy(struct magnum * magnum, struct magnum * new_magnum){
+void copy(struct magnum * new_magnum, struct magnum * magnum){
     // copy magnum into new_magnum
 
     new_magnum->power = magnum->power;

@@ -6,6 +6,36 @@
 #include "convert.h"
 
 
+
+
+struct magnum *_karatsuba(struct magnum *mag1, struct magnum *mag2){
+    int prec1 = abs(mag1->sign_n_prec);
+    int prec2 = abs(mag2->sign_n_prec);
+    if(prec1 == 1 && prec1 == 1){
+        struct magnum *result = to_magnum_from_int(mag1->value[0] * mag2->value[0]);
+        result->power += mag1->power + mag2->power;
+        return result;
+    }
+    //prec1 || prec2
+    //divide n conquer
+}
+
+
+struct magnum *product(struct magnum *mag1, struct magnum *mag2){
+    _level(mag1, mag2);
+    int prec = abs(mag1->sign_n_prec);
+
+    struct magnum *result = _new_magnum();
+
+    result = _karatsuba(mag1, mag2);
+
+    _clean_magnum(mag1);
+    _clean_magnum(mag2);
+    _clean_magnum(result);
+    return result;
+}
+
+
 void magnum_time_int(struct magnum *mag1, int n){
     if (n==0)
         _init_magnum(mag1);
@@ -39,32 +69,4 @@ void magnum_time_int(struct magnum *mag1, int n){
                 _carry(mag1, res_i/256, i + 1);
         }
     }
-}
-
-
-struct magnum *_karatsuba(struct magnum *mag1, struct magnum *mag2){
-    int prec1 = abs(mag1->sign_n_prec);
-    int prec2 = abs(mag2->sign_n_prec);
-    if(prec1 == 1 && prec1 == 1){
-        struct magnum *result = to_magnum_from_int(mag1->value[0] * mag2->value[0]);
-        result->power += mag1->power + mag2->power;
-        return result;
-    }
-    //prec1 || prec2
-    //divide n conquer
-}
-
-
-struct magnum *product(struct magnum *mag1, struct magnum *mag2){
-    _level(mag1, mag2);
-    int prec = abs(mag1->sign_n_prec);
-
-    struct magnum *result = _new_magnum();
-
-    result = _karatsuba(mag1, mag2);
-
-    _clean_magnum(mag1);
-    _clean_magnum(mag2);
-    _clean_magnum(result);
-    return result;
 }
