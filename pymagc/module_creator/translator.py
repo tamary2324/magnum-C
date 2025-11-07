@@ -19,13 +19,13 @@ class Translator:
         last_end = 0
         split_string = []
         for idx, char in enumerate(text):
-            if char == ' ':
+            if char == ';':
                 if depth == 0:
                     split_string.append(text[last_end:idx])
                     last_end = idx+1
-            elif char == '(':
+            elif char == "(":
                 depth += 1
-            elif char == ')':
+            elif char == ")":
                 depth -= 1
         split_string.append(text[last_end:])
         return split_string
@@ -35,13 +35,13 @@ class Translator:
         last_end = 0
         split_string = []
         for idx, char in enumerate(string):
-            if char == ' ':
+            if char == " ":
                 if depth == 0:
                     split_string.append(string[last_end:idx])
                     last_end = idx+1
-            elif char == '(':
+            elif char == "(":
                 depth += 1
-            elif char == ')':
+            elif char == ")":
                 depth -= 1
         split_string.append(string[last_end:])
         return split_string
@@ -49,11 +49,28 @@ class Translator:
     def write(self, line):
         self.translation.append(line)
 
-    def translate_expr(self, expr, type):
+    def translate_expr(self, expr, expr_type):
+        if expr_type == "int":
+            return self.translate_expr_int(expr)
+
+    def translate_expr_int(self, expr):
         expr = expr[1:-1]
         split_expr = self.split(expr)
-        print("expr", split_expr)
-        expr_to_write = ''  # (42 * 43) + (a * b) -> [(42 * 43), +, (a * b)]
+        if len(split_expr) == 1:
+            expr_to_write = split_expr[0]
+        elif split_expr[0] == "FUNC":
+            pass
+        elif len(split_expr) == 3:
+            if split_expr[1] in self.operators:
+                expr_to_write = (
+                    self.translate_expr_int(split_expr[0])
+                    + " "
+                    + split_expr[1]
+                    + " "
+                    + self.translate_expr_int(split_expr[2])
+                )
+            else:
+                raise Exception("pymagc translator : Unknown operator")
         return expr_to_write
 
     def translate_script(self):
@@ -62,21 +79,27 @@ class Translator:
     def make(self, args):  # args = [type, name, expr]
         if args[1] in self.stored_vars:
             raise Exception("pymagc translator : Variable already exists")
+        if args[0] == "int":
+            line_to_write = f"int {args[1]} = "
+            expr = self.translate_expr_int(args[2])
+        elif args[0] == "mag":
+            line_to_write = f"struct magnum * {args[1]} = "
         else:
-            if args[0] == 'int':
-                line_to_write = f'int {args[1]} = '
-            elif args[0] == 'mag':
-                line_to_write = f'struct magnum * {args[1]} = '
-            else:
-                raise Exception("pymagc translator : Unsupported / unknown type")
-            self.stored_vars.update({args[1]: args[0]})
-            line_to_write += self.translate_expr(args[2], args[0])
-            self.write(line_to_write)
+            raise Exception("pymagc translator : Unsupported / unknown type")
+        self.stored_vars.update({args[1]: args[0]})
+        line_to_write += expr + ';'
+        self.write(line_to_write)
 
-    def set(self, args):
-        pass
+    def set(self, args):  # args = [name, expr]
+        if not (args[0] in self.stored_vars):
+            raise Exception("pymagc translator : Unknown variable")
+        if self.stored_vars[args[0]] == "int":
+            expr = self.translate_expr_int(args[1])
+        line_to_write = f"{args[0]} = " + expr + ";"
+        self.write(line_to_write)
 
     def translate_line(self, line):
+        print("line", line)
         words = self.split(line)
         print("words", words)
         if words[0] in self.processes:
@@ -91,7 +114,7 @@ class Translator:
         with open(self.file_path, "r") as file:
             str_file = file.read()
             file.close()
-        lines = self.split_lines(str_file.strip("\n"))
+        lines = self.split_lines(str_file.replace("\n", ""))
         for line in lines:
             self.translate_line(line)
         return self.translation
