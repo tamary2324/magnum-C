@@ -57,6 +57,17 @@ class Translator:
         expr = expr[1:-1]
         split_expr = self.split(expr)
         if len(split_expr) == 1:
+            if split_expr[0][0] in self.numbers:
+                try:
+                    int(split_expr[0])
+                except ValueError:
+                    raise Exception("pymagc translator : Expected int value")
+            else:
+                if split_expr[0] in self.stored_vars:
+                    if self.stored_vars[split_expr[0]] != "int":
+                        raise Exception("pymagc translator : Expected int variable")
+                else:
+                    raise Exception("pymagc translator : Unknown variable")
             expr_to_write = split_expr[0]
         elif split_expr[0] == "FUNC":
             pass
