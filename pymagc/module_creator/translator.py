@@ -125,17 +125,21 @@ class Translator:
             if split_expr[1] == "int":
                 pass
             elif split_expr[1] == "float":
-                if split_expr[2] == "." or split_expr[2] in self.numbers:
+                expr_to_write = (
+                    "magnum * to_magnum_from_double("
+                    + self.translate_expr_float(split_expr[2])
+                    + ")"
+                )
             else:
                 raise Exception("pymagc translator : Type cannot be turned into Magnum")
         elif len(split_expr) == 3:
             if split_expr[1] in self.operators:
                 expr_to_write = (
-                    self.translate_expr_float(split_expr[0])
+                    self.translate_expr_mag(split_expr[0])
                     + " "
                     + split_expr[1]
                     + " "
-                    + self.translate_expr_float(split_expr[2])
+                    + self.translate_expr_mag(split_expr[2])
                 )
             else:
                 raise Exception("pymagc translator : Unknown operator")
