@@ -72,7 +72,7 @@ void add(struct magnum * mag1, struct magnum * mag2){
         for (int i = 0; i < prec; i++){
             mag1->value[i] += mag2->value[i];
             if (mag1->value[i] < mag2->value[i])
-                _carry(mag1, 1, i + 1);
+                _carry(mag1, 1, i - 1);
         }
     }
 

@@ -9,6 +9,8 @@
 void magnum_time_int(struct magnum *magnum, int n){
     if (n==0)
         _init_magnum(magnum);
+    if (n==1)
+        return;
     
     if (abs(n)>=256){
         struct magnum *nt = to_magnum_from_int(n);
@@ -60,12 +62,14 @@ struct magnum *_karatsuba(struct magnum *mag1, struct magnum *mag2){
         struct magnum *result = _new_magnum();
         copy(result, mag2);
         magnum_time_int(result, mag1->value[0]);
+        result->power += mag1->power;
         return result;
     }
     if (prec2 == 1){
         struct magnum *result = _new_magnum();
         copy(result, mag1);
         magnum_time_int(result, mag2->value[0]);
+        result->power += mag2->power;
         return result;
     }
 
@@ -74,10 +78,10 @@ struct magnum *_karatsuba(struct magnum *mag1, struct magnum *mag2){
             printf("precision error");
             abort();
         }
-        // printf("prec1 = %d\nprec2 = %d\n", prec1, prec2);
+        printf("mag1 mag2\n");
         print_magnum_info(mag1);
         print_magnum_info(mag2);
-        printf("\n");
+        // printf("prec1 = %d\nprec2 = %d\n", prec1, prec2);
         //divide the number in 4 parts : (az + b)(cz + c)
         int z;
         if (prec1 <= prec2)
@@ -114,7 +118,10 @@ struct magnum *_karatsuba(struct magnum *mag1, struct magnum *mag2){
 
         struct magnum *a_n_b = sum(a, b);
         struct magnum *c_n_d = sum(c, d);
+        // printf("anb cnd\n");
+        // print_magnum_info(a_n_b);
         // print_magnum_info(c_n_d);
+        // printf("\n");
         struct magnum *x3 = _karatsuba(a_n_b, c_n_d);
         free_magnum(a_n_b);
         free_magnum(c_n_d);
@@ -125,10 +132,11 @@ struct magnum *_karatsuba(struct magnum *mag1, struct magnum *mag2){
         struct magnum *x2 = _karatsuba(b, d);
         free(b);
         free(d);
-        // print_magnum_info(x1);
-        // print_magnum_info(x2);
-        // print_magnum_info(x3);
-        // printf("\n");
+        printf("x1 x2 x3\n");
+        print_magnum_info(x1);
+        print_magnum_info(x2);
+        print_magnum_info(x3);
+        printf("res = %f\n", from_magnum_to_double(x1)*pow(2.,z*16.)+(from_magnum_to_double(x3)-from_magnum_to_double(x1)-from_magnum_to_double(x2))*pow(2.,z*8.)+from_magnum_to_double(x2));
 
         // calcul x3-x1-x2
         x3->sign_n_prec = -x3->sign_n_prec;
