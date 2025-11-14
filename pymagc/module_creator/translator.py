@@ -4,7 +4,9 @@ class Translator:
         self.file_path = file_path
         self.processes = {
             "MAKE": [self.make, 3],
-            "SET": [self.set, 2]
+            "SET": [self.set, 2],
+            "COPYMAG": [self.copy_mag, 2],
+            "FUNC": [self.set, 2]
         }
         self.numbers = [str(i) for i in range(10)]
         self.letters = [char for char in 'abcdefghijklmnopqrstuvwxyz']
@@ -13,6 +15,7 @@ class Translator:
             "-": "sub"
         }
         self.stored_vars = {}
+        self.stored_funcs = {}
         self.translation = []
 
     def split_lines(self, text):
@@ -50,10 +53,6 @@ class Translator:
     def write(self, line):
         self.translation.append(line)
 
-    def translate_expr(self, expr, expr_type):
-        if expr_type == "int":
-            return self.translate_expr_int(expr)
-
     def translate_expr_int(self, expr):
         expr = expr[1:-1]
         split_expr = self.split(expr)
@@ -64,14 +63,11 @@ class Translator:
                 except ValueError:
                     raise Exception("pymagc translator : Expected int value")
             else:
-                if split_expr[0] in self.stored_vars:
-                    if self.stored_vars[split_expr[0]] != "int":
-                        raise Exception("pymagc translator : Expected int variable")
-                else:
+                if not (split_expr[0] in self.stored_vars):
                     raise Exception("pymagc translator : Unknown variable")
+                if self.stored_vars[split_expr[0]] != "int":
+                    raise Exception("pymagc translator : Expected int variable")
             expr_to_write = split_expr[0]
-        elif split_expr[0] == "FUNC":
-            pass
         elif len(split_expr) == 3:
             if split_expr[1] in self.operators:
                 expr_to_write = (
@@ -83,6 +79,12 @@ class Translator:
                 )
             else:
                 raise Exception("pymagc translator : Unknown operator")
+        elif split_expr[0] in self.stored_funcs:
+            if self.stored_funcs[split_expr[0]] != "int":
+                raise Exception("pymagc translator : Function called is not of type int")
+            pass
+        else:
+            raise Exception("pymagc translator : Int expression was not able to be translated")
         return expr_to_write
 
     def translate_expr_float(self, expr):
@@ -95,14 +97,11 @@ class Translator:
                 except ValueError:
                     raise Exception("pymagc translator : Expected float value")
             else:
-                if split_expr[0] in self.stored_vars:
-                    if self.stored_vars[split_expr[0]] != "float":
-                        raise Exception("pymagc translator : Expected float variable")
-                else:
+                if not (split_expr[0] in self.stored_vars):
                     raise Exception("pymagc translator : Unknown variable")
+                if self.stored_vars[split_expr[0]] != "float":
+                    raise Exception("pymagc translator : Expected float variable")
             expr_to_write = split_expr[0]
-        elif split_expr[0] == "FUNC":
-            pass
         elif len(split_expr) == 3:
             if split_expr[1] in self.operators:
                 expr_to_write = (
@@ -114,35 +113,49 @@ class Translator:
                 )
             else:
                 raise Exception("pymagc translator : Unknown operator")
+        elif split_expr[0] in self.stored_funcs:
+            if self.stored_funcs[split_expr[0]] != "float":
+                raise Exception("pymagc translator : Function called is not of type float")
+            pass
+        else:
+            raise Exception("pymagc translator : Float expression was not able to be translated")
         return expr_to_write
 
-    def translate_expr_mag(self, expr):
+    def translate_expr_mag(self, expr, expression_depth=0):
         expr = expr[1:-1]
         split_expr = self.split(expr)
-        if split_expr[0] == "FUNC":
-            pass
-        elif split_expr[0] == "MAG":
+        if split_expr[0] == "MAG":
             if split_expr[1] == "int":
-                pass
+                expr_to_write = (
+                    "to_magnum_from_int("
+                    + self.translate_expr_int(split_expr[2])
+                    + ")"
+                )
             elif split_expr[1] == "float":
                 expr_to_write = (
-                    "magnum * to_magnum_from_double("
+                    "to_magnum_from_double("
                     + self.translate_expr_float(split_expr[2])
                     + ")"
                 )
             else:
-                raise Exception("pymagc translator : Type cannot be turned into Magnum")
+                raise Exception("pymagc translator : Type cannot be turned into magnum")
         elif len(split_expr) == 3:
             if split_expr[1] in self.operators:
                 expr_to_write = (
-                    self.translate_expr_mag(split_expr[0])
+                    self.translate_expr_mag(split_expr[0], expression_depth=expression_depth+1)
                     + " "
                     + split_expr[1]
                     + " "
-                    + self.translate_expr_mag(split_expr[2])
+                    + self.translate_expr_mag(split_expr[2], expression_depth=expression_depth+1)
                 )
             else:
                 raise Exception("pymagc translator : Unknown operator")
+        elif split_expr[0] in self.stored_funcs:
+            if self.stored_funcs[split_expr[0]] != "mag":
+                raise Exception("pymagc translator : Function called is not of type mag")
+            pass
+        else:
+            raise Exception("pymagc translator : Magnum expression was not able to be translated")
         return expr_to_write
 
     def make(self, args):  # args = [type, name, expr]
@@ -158,8 +171,9 @@ class Translator:
             expr = self.translate_expr_float(args[2])
         elif args[0] == "mag":
             line_to_write = f"struct magnum * {args[1]} = "
+            expr = self.translate_expr_mag(args[2])
         else:
-            raise Exception("pymagc translator : Unsupported / unknown type for make")
+            raise Exception("pymagc translator : Unsupported type for make")
         self.stored_vars.update({args[1]: args[0]})
         line_to_write += expr + ';'
         self.write(line_to_write)
@@ -172,13 +186,41 @@ class Translator:
         elif self.stored_vars[args[0]] == "float":
             expr = self.translate_expr_float(args[1])
         else:
-            raise Exception("pymagc translator : Unsupported / unknown type for set")
+            raise Exception("pymagc translator : Unsupported type for set")
         line_to_write = f"{args[0]} = " + expr + ";"
         self.write(line_to_write)
+
+    def copy_mag(self, args):  # args = [magnum to be copied into, magnum to be copied from]
+        if len(args) != 2:
+            raise Exception("pymagc translator : Incorrect amount of arguments")
+        for variable in args:
+            if not (variable in self.stored_vars):
+                raise Exception("pymagc translator : Unknown variable")
+            if self.stored_vars[variable] != "mag":
+                raise Exception("pymagc translator : Variable is not a magnum")
+        line_to_write = f"copy({args[0]}, {args[1]})"
+        self.write(line_to_write)
+
+    def func(self, args):  # args = [return type, name, func args (type name)]
+        if not (args[1][0] in self.letters):
+            raise Exception("pymagc translator : Invalid function name")
+        if args[1] in self.stored_vars:
+            raise Exception("pymagc translator : Function already exists")
+
+    def func_return(self, args):
+        pass
+
+    def done(self, args):
+        pass
+
+    def self_op(self, args):
+        pass
 
     def translate_line(self, line):
         print("line", line)
         words = self.split(line)
+        while words[0] == '':
+            words.pop(0)
         print("words", words)
         if words[0] in self.processes:
             n_of_args_needed = self.processes[words[0]][1]
@@ -195,8 +237,11 @@ class Translator:
             str_file = file.read()
             file.close()
         lines = self.split_lines(str_file.replace("\n", ""))
+        self.depth = 0
         for line in lines:
             self.translate_line(line)
+        if self.depth != 0:
+            raise Exception("pymagc translator : Depth is not 0")
         return self.translation
 
 
@@ -224,15 +269,19 @@ FUNC {func name} {type}
 ## expr
 expr -> what can be found in the def of a variable
 
-
-TO DO: set ";" as seperator
-
-CYCLE i 0 n {
+CYCLE i 0 n
     SET ...
     ...
-}
+DONE
 
-FUNC a ((type name) (type name) (type name) ... ) (output type) {
-}
+FUNC a ((type name) (type name) (type name) ... ) (output type)
+...
+DONE
 
+
+
+
+
+
+Make capable of writing data into a file???
 '''
