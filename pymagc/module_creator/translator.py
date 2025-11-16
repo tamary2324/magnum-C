@@ -9,7 +9,7 @@ class Translator:
             "FUNC": [self.set, 2]
         }
         self.numbers = [str(i) for i in range(10)]
-        self.letters = [char for char in 'abcdefghijklmnopqrstuvwxyz']
+        self.letters = [char for char in "abcdefghijklmnopqrstuvwxyz"]
         self.operators = {
             "+": "add",
             "-": "sub"
@@ -23,7 +23,7 @@ class Translator:
         last_end = 0
         split_string = []
         for idx, char in enumerate(text):
-            if char == ';':
+            if char == ";":
                 if depth == 0:
                     split_string.append(text[last_end:idx])
                     last_end = idx+1
@@ -51,7 +51,7 @@ class Translator:
         return split_string
 
     def write(self, line):
-        self.translation.append(line)
+        self.translation.append((self.depth * " ") + line)
 
     def translate_expr_int(self, expr):
         expr = expr[1:-1]
@@ -175,7 +175,7 @@ class Translator:
         else:
             raise Exception("pymagc translator : Unsupported type for make")
         self.stored_vars.update({args[1]: args[0]})
-        line_to_write += expr + ';'
+        line_to_write += expr + ";"
         self.write(line_to_write)
 
     def set(self, args):  # args = [name, expr]
@@ -185,6 +185,8 @@ class Translator:
             expr = self.translate_expr_int(args[1])
         elif self.stored_vars[args[0]] == "float":
             expr = self.translate_expr_float(args[1])
+        elif self.stored_vars[args[0]] == "mag":
+            pass
         else:
             raise Exception("pymagc translator : Unsupported type for set")
         line_to_write = f"{args[0]} = " + expr + ";"
@@ -206,12 +208,33 @@ class Translator:
             raise Exception("pymagc translator : Invalid function name")
         if args[1] in self.stored_vars:
             raise Exception("pymagc translator : Function already exists")
+        if self.in_function:
+            raise Exception("pymagc translator : Cannot define function in function")
+        if self.depth != 0:
+            raise Exception("pymagc translator : Can only create functions at a depth of 0")
+        if args[0] == "mag":
+            line_to_write = "struct magnum * " + args[0]
+        elif (args[0] == "int") or (args[0] == "float"):
+            line_to_write = args[0] + " " + args[1]
+        else:
+            raise Exception("pymagc translator : Unknown type for function definition")
+        self.write(line_to_write)
+        self.in_function = True
+        self.depth += 1
 
     def func_return(self, args):
         pass
 
     def done(self, args):
-        pass
+        if self.depth == 0:
+            raise Exception("pymagc translator : Nothing to be done with... o_O")
+        if self.in_function and (self.depth == 1):
+            self.depth -= 1
+            self.in_function = False
+        else:
+            self.depth -= 1
+        line_to_write = "}"
+        self.write(line_to_write)
 
     def self_op(self, args):
         pass
@@ -219,7 +242,7 @@ class Translator:
     def translate_line(self, line):
         print("line", line)
         words = self.split(line)
-        while words[0] == '':
+        while words[0] == "":
             words.pop(0)
         print("words", words)
         if words[0] in self.processes:
@@ -238,6 +261,7 @@ class Translator:
             file.close()
         lines = self.split_lines(str_file.replace("\n", ""))
         self.depth = 0
+        self.in_function = False
         for line in lines:
             self.translate_line(line)
         if self.depth != 0:
