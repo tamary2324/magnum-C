@@ -188,15 +188,14 @@ class Translator:
         elif self.stored_vars[args[0]] == "mag":
             pass
             '''
-            Delete what was previously at the mag address and create a new mag with the wanted value
-             -> however, need to get the type to know what convert function to call
-            
-            Free_magnum(m1)
-            m1 = to_magnum_from_int(3)
-            
-            Also -> need to check that the final expression does not contain m1
+Delete what was previously at the mag address and create a new mag with the wanted value
+    -> however, need to get the type to know what convert function to call
+Free_magnum(m1)
+m1 = to_magnum_from_int(3)
 
-            ALTERNATIVE SOLUTION -> do not allow set for magnums???
+Also -> need to check that the final expression does not contain m1
+
+ALTERNATIVE SOLUTION -> do not allow set for magnums???
             '''
         else:
             raise Exception("pymagc translator : Unsupported type for set")
